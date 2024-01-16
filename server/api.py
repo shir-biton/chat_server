@@ -3,9 +3,9 @@ from typing import List
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from server.database import database
-from server.database.dal_service import MessageDAL
-from server.database.models.message import Message
+from database import database
+from database.dal_service import MessageDAL
+from database.models import Message
 
 
 class ChatAPI:

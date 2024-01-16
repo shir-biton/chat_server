@@ -3,8 +3,8 @@ from sqlmodel import SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlalchemy.orm import sessionmaker
 
-from server.app_config import settings
-from server.utils import Singleton
+from app_config import settings
+from utils import Singleton
 
 
 class AsyncDatabaseSession(metaclass=Singleton):

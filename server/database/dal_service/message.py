@@ -3,7 +3,7 @@ from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
-from server.database.models import Message
+from database.models import Message
 
 
 class MessageDAL:

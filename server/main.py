@@ -2,7 +2,7 @@ import uvicorn
 from fastapi import FastAPI
 
 from api import ChatAPI
-from server.database import database
+from database import database
 
 app = FastAPI()
 

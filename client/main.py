@@ -1,9 +1,10 @@
+import os
 import threading
 import time
 
 import httpx
 
-BASE_URL = "http://localhost:8000"
+BASE_URL = os.getenv("SERVER_URL", "http://localhost:8000")
 
 
 def post_message(username: str, message: str) -> dict:

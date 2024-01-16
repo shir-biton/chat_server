@@ -1,3 +1,5 @@
+import logging
+
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlmodel import SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -13,8 +15,11 @@ class AsyncDatabaseSession(metaclass=Singleton):
         self.engine = create_async_engine(settings.db_url, future=True)
 
     async def init_db(self) -> None:
-        async with self.engine.begin() as conn:
-            await conn.run_sync(SQLModel.metadata.create_all)
+        try:
+            async with self.engine.begin() as conn:
+                await conn.run_sync(SQLModel.metadata.create_all)
+        except Exception:
+            logging.exception("Error while creating database")
 
     async def get_db(self) -> AsyncSession:
         try:

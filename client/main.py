@@ -1,59 +1,57 @@
+import asyncio
 import os
-import threading
-import time
 
 import httpx
 
 BASE_URL = os.getenv("SERVER_URL", "http://localhost:8000")
 
 
-def post_message(sender: str, message: str, room: str) -> dict:
+async def post_message(sender: str, message: str, room: str) -> dict:
     url = f"{BASE_URL}/message"
     data = {"sender": sender, "message": message, "room": room}
 
-    with httpx.Client() as client:
-        response = client.post(url, json=data, follow_redirects=True)
+    async with httpx.AsyncClient() as client:
+        response = await client.post(url, json=data, follow_redirects=True)
         response.raise_for_status()
         return response.json()
 
 
-def get_messages(room: str) -> dict:
+async def get_messages(room: str) -> dict:
     url = f"{BASE_URL}/message/{room}"
 
-    with httpx.Client() as client:
-        response = client.get(url)
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url)
         response.raise_for_status()
         return response.json()
 
 
-def print_messages(room: str) -> None:
+async def print_messages(room: str) -> None:
     while True:
-        messages = get_messages(room)
+        messages = await get_messages(room)
         if messages:
             print("Messages:")
             for msg in messages:
                 print(f"{msg['sender']}: {msg['message']}")
-        time.sleep(1)
+        await asyncio.sleep(1)
 
 
-def chat_client(username: str) -> None:
-    print_thread = threading.Thread(target=print_messages, args=(username,), daemon=True)
-    print_thread.start()
+async def chat_client(username: str, room: str) -> None:
+    print_task = asyncio.create_task(print_messages(room))
 
-    room = input("Enter the room to connect to: ")
     while True:
         message = input("Enter your message: ")
         if message.lower() == 'exit':
             break
-        post_message(username, message, room)
+        await post_message(username, message, room)
+
+    print_task.cancel()
 
 
 def main():
-    while True:
-        username = input("Enter your username (type 'exit' to quit): ")
-        if username.lower() == 'exit':
-            break
-        threading.Thread(target=chat_client, args=(username,), daemon=True).start()
+    username = input("Enter your username: ")
+    room = input("Enter the room to connect to: ")
+
+    asyncio.run(chat_client(username, room))
 
 
 if __name__ == "__main__":

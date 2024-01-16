@@ -1,0 +1,11 @@
+.idea/
+.dbg/
+*.pytest_cache
+*.pyc
+*.sqlite
+venv
+.venv
+debug/*
+uwsgi.py
+*.DS_Store
+*.log

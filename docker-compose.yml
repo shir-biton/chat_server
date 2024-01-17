@@ -19,7 +19,8 @@ services:
     ports:
       - "9000:9000"
     environment:
-      - SERVER_URL=http://server:8000
+      - SERVER_HOST=server
+      - SERVER_PORT=8000
     depends_on:
       - server
     stdin_open: true

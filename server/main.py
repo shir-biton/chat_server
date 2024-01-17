@@ -3,7 +3,7 @@ import logging
 import uvicorn
 from fastapi import FastAPI
 
-from api import ChatAPI
+from api import ChatAPI, ChatWebSocketAPI
 from database import database
 
 app = FastAPI()
@@ -16,6 +16,7 @@ logging.basicConfig(
 
 async def init_routes() -> None:
     app.include_router(ChatAPI().router)
+    app.include_router(ChatWebSocketAPI().router)
 
 
 @app.on_event("startup")

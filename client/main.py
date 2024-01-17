@@ -1,50 +1,45 @@
 import asyncio
+import json
 import os
 
-import httpx
+import websockets
 
-BASE_URL = os.getenv("SERVER_URL", "http://localhost:8000")
-
-
-async def post_message(sender: str, message: str, room: str) -> dict:
-    url = f"{BASE_URL}/message"
-    data = {"sender": sender, "message": message, "room": room}
-
-    async with httpx.AsyncClient() as client:
-        response = await client.post(url, json=data, follow_redirects=True)
-        response.raise_for_status()
-        return response.json()
+BASE_WS_URL = f"ws://{os.getenv('SERVER_HOST', '127.0.0.1')}:{os.getenv('SERVER_PORT', 8000)}/ws"
 
 
-async def get_messages(room: str) -> dict:
-    url = f"{BASE_URL}/message/{room}"
-
-    async with httpx.AsyncClient() as client:
-        response = await client.get(url)
-        response.raise_for_status()
-        return response.json()
+async def send_message(data: dict, websocket) -> None:
+    await websocket.send(json.dumps(data))
 
 
-async def print_messages(room: str) -> None:
-    while True:
-        messages = await get_messages(room)
-        if messages:
-            print("Messages:")
-            for msg in messages:
-                print(f"{msg['sender']}: {msg['message']}")
-        await asyncio.sleep(1)
+async def print_messages(chat_connection_url: str) -> None:
+    async with websockets.connect(chat_connection_url) as websocket:
+        while True:
+            try:
+                message = await websocket.recv()
+                print(message)
+            except websockets.ConnectionClosed:
+                print("WebSocket connection closed.")
+                break
 
 
 async def chat_client(username: str, room: str) -> None:
-    print_task = asyncio.create_task(print_messages(room))
+    chat_connection_url = f"{BASE_WS_URL}/{room}/{username}"
+    receive_task = asyncio.create_task(print_messages(chat_connection_url))
 
-    while True:
-        message = input("Enter your message: ")
-        if message.lower() == 'exit':
-            break
-        await post_message(username, message, room)
+    async with websockets.connect(chat_connection_url) as websocket:
+        while True:
+            try:
+                message = input("Enter your message: ")
+                if message.lower() == 'exit':
+                    break
+                data = {"sender": username, "message": message, "room": room}
+                await send_message(data=data, websocket=websocket)
+                await asyncio.sleep(1)
+            except websockets.ConnectionClosed:
+                print("WebSocket connection closed.")
+                break
 
-    print_task.cancel()
+    receive_task.cancel()
 
 
 def main():

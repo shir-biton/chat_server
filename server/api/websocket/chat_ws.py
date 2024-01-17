@@ -1,3 +1,5 @@
+import asyncio
+
 from fastapi import WebSocket, WebSocketDisconnect, Depends, APIRouter
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -25,7 +27,7 @@ class ChatWebSocketAPI:
             while True:
                 data = await websocket.receive_json()
                 message: Message = Message(**data)
-                new_message = await MessageDAL.create_message(message=message, db=db)
-                await self.websocket_manager.broadcast_message(room, new_message.dict())
+                asyncio.create_task(MessageDAL.create_message(message=message, db=db))
+                await self.websocket_manager.broadcast_message(room, message.dict())
         except WebSocketDisconnect:
             await self.websocket_manager.disconnect(websocket, room)

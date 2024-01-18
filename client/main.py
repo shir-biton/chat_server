@@ -29,7 +29,7 @@ async def chat_client(username: str, room: str) -> None:
     async with websockets.connect(chat_connection_url) as websocket:
         while True:
             try:
-                message = input("Enter your message: ")
+                message = input("Enter your message: (write exit to quite")
                 if message.lower() == 'exit':
                     break
                 data = {"sender": username, "message": message, "room": room}
